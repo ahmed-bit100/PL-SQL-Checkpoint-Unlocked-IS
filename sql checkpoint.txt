@@ -1,0 +1,52 @@
+1-
+declare cursor cur is select customer_id,customer_name,customer_tel from customer;
+begin
+for rec in cur loop
+dbms_output.put_line(rec.customer_id ||' '||rec.customer_name ||' '||rec.customer_tel );
+end loop;
+end;
+
+2-
+create or replace procedure ps_customer_products(v_cust_id customer.customer_id%type)is
+CURSOR cur IS SELECT p.product_name from orders o,product p where o.customer_id=v_cust_id and p.product_id=o.product_id;
+begin
+for rec in cur loop
+dbms_output.put_line(rec.product_name);
+end loop;
+EXCEPTION
+when no_data_found then
+dbms_output.put_line('No products returned or customer not found');
+end;
+/
+begin 
+ps_customer_products('C02');
+end;
+/
+
+
+3-
+CREATE OR REPLACE FUNCTION FN_Customer_Orders_ord (v_ord_id orders.customer_id%type) RETURN number IS
+Customer_Orders number;
+begin
+SELECT count(*) into Customer_Orders FROM orders WHERE customer_id=v_ord_id;
+return Customer_Orders;
+end;
+/
+declare 
+nb number;
+i varchar2(50);
+begin
+i:=('C02');
+nb:=FN_Customer_Orders_ord(i);
+dbms_output.put_line(nb);
+end;
+/
+
+4-
+CREATE OR REPLACE TRIGGER TRIG_INS_ORDERS
+BEFORE INSERT OR UPDATE ON orders for each row
+begin
+if (:new.OrderDate> SYSDATE) then
+RAISE_APPLICATION_ERROR(-20010,'Order Date must be greater than or equal to todays date');
+end if;
+end;
